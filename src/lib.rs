@@ -50,6 +50,14 @@ pub fn register_actions(mgmt: ManagementHandle) -> ManagementHandle {
             "demo_error_vs_warning",
             |ctx, params| async move { demo_error_vs_warning(ctx, params).await },
         ))
+        .with_streaming_action(StreamingAction::new(
+            "demo_never_completes",
+            |ctx, params| async move { demo_never_completes(ctx, params).await },
+        ))
+        .with_streaming_action(StreamingAction::new(
+            "demo_admin_only",
+            |ctx, params| async move { demo_admin_only(ctx, params).await },
+        ))
 }
 
 /// The capability manifest hc-captest publishes. Exposed so integration
@@ -134,6 +142,44 @@ pub fn capabilities_manifest() -> Capabilities {
                 requires_role: RequiresRole::User,
                 timeout_ms: Some(10_000),
             },
+            Action {
+                id: "demo_never_completes".into(),
+                label: "Demo: never-completing (timeout target)".into(),
+                description: Some(
+                    "Sleeps past the manifest timeout_ms so core injects a \
+                     synthetic timeout terminal. Used to validate timeout \
+                     injection."
+                        .into(),
+                ),
+                params: None,
+                result: None,
+                stream: true,
+                cancelable: false,
+                concurrency: Concurrency::Multi,
+                item_key: None,
+                item_operations: None,
+                requires_role: RequiresRole::User,
+                // Intentionally short — core should inject timeout first.
+                timeout_ms: Some(300),
+            },
+            Action {
+                id: "demo_admin_only".into(),
+                label: "Demo: admin-only action".into(),
+                description: Some(
+                    "Completes immediately. requires_role:\"admin\" — used to \
+                     validate role enforcement."
+                        .into(),
+                ),
+                params: None,
+                result: None,
+                stream: true,
+                cancelable: false,
+                concurrency: Concurrency::Multi,
+                item_key: None,
+                item_operations: None,
+                requires_role: RequiresRole::Admin,
+                timeout_ms: Some(5_000),
+            },
         ],
     }
 }
@@ -216,4 +262,23 @@ async fn demo_error_vs_warning(ctx: StreamContext, params: Value) -> Result<()> 
     }
 
     ctx.error("unrecoverable after retries").await
+}
+
+/// Sleeps past the manifest-declared `timeout_ms` so core injects a
+/// synthetic `timeout` terminal on the stream. The plugin should never
+/// emit anything other than a single progress event — if we win the
+/// race and reach `complete`, the test fails.
+async fn demo_never_completes(ctx: StreamContext, _params: Value) -> Result<()> {
+    ctx.progress(Some(0), Some("sleeping past timeout"), None)
+        .await?;
+    // Sleep for much longer than demo_never_completes's timeout_ms (300ms).
+    tokio::time::sleep(Duration::from_secs(10)).await;
+    ctx.complete(json!({ "never": true })).await
+}
+
+/// Immediate complete — the body never runs unless the caller's role
+/// satisfies `requires_role:"admin"`. Used to validate core's role
+/// enforcement in `post_plugin_command`.
+async fn demo_admin_only(ctx: StreamContext, _params: Value) -> Result<()> {
+    ctx.complete(json!({ "admin_action": "ok" })).await
 }
