@@ -71,8 +71,7 @@ pub fn capabilities_manifest() -> Capabilities {
                 id: "demo_item_stream".into(),
                 label: "Demo: multi-item stream".into(),
                 description: Some(
-                    "Emits progress + a series of item add/update events, then completes."
-                        .into(),
+                    "Emits progress + a series of item add/update events, then completes.".into(),
                 ),
                 params: Some(json!({
                     "item_count": {"type": "integer", "minimum": 1, "maximum": 20, "default": 3}
@@ -92,8 +91,7 @@ pub fn capabilities_manifest() -> Capabilities {
                 id: "demo_awaiting_user".into(),
                 label: "Demo: awaiting-user prompts".into(),
                 description: Some(
-                    "Emits an advisory prompt then an interactive prompt with schema."
-                        .into(),
+                    "Emits an advisory prompt then an interactive prompt with schema.".into(),
                 ),
                 params: None,
                 result: None,
@@ -109,8 +107,7 @@ pub fn capabilities_manifest() -> Capabilities {
                 id: "demo_cancelable".into(),
                 label: "Demo: cancelable long-running".into(),
                 description: Some(
-                    "Long progress loop that honours cancel. concurrency:single."
-                        .into(),
+                    "Long progress loop that honours cancel. concurrency:single.".into(),
                 ),
                 params: None,
                 result: None,
@@ -201,7 +198,8 @@ async fn demo_item_stream(ctx: StreamContext, params: Value) -> Result<()> {
         // Tiny yield so the event ordering is observable; in prod the
         // plugin would just do real work here.
         tokio::time::sleep(Duration::from_millis(5)).await;
-        ctx.item_update(json!({ "id": id, "status": "ready" })).await?;
+        ctx.item_update(json!({ "id": id, "status": "ready" }))
+            .await?;
         let pct = ((i + 1) * 100 / n) as u8;
         ctx.progress(Some(pct), Some("filling"), None).await?;
     }

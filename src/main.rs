@@ -17,8 +17,7 @@ async fn main() -> Result<()> {
         .init();
 
     let config = PluginConfig {
-        broker_host: std::env::var("HC_BROKER_HOST")
-            .unwrap_or_else(|_| "127.0.0.1".to_string()),
+        broker_host: std::env::var("HC_BROKER_HOST").unwrap_or_else(|_| "127.0.0.1".to_string()),
         broker_port: std::env::var("HC_BROKER_PORT")
             .ok()
             .and_then(|s| s.parse().ok())
