@@ -28,7 +28,5 @@ chrono           = { version = "0.4",  features = ["serde"] }
 
 # Exclude from parent workspace — each plugin is a standalone repo per
 # homeCore convention.
-[workspace]
-
 [profile.release]
 strip = true
