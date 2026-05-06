@@ -21,7 +21,7 @@
 //! All actions are designed to run quickly in tests (milliseconds).
 
 use anyhow::Result;
-use hc_types::{Action, Capabilities, Concurrency, ItemOp, RequiresRole};
+use plugin_sdk_rs::types::{Action, Capabilities, Concurrency, ItemOp, RequiresRole};
 use plugin_sdk_rs::{ManagementHandle, StreamContext, StreamingAction};
 use serde_json::{json, Value};
 use std::time::Duration;
